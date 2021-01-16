@@ -1,0 +1,638 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="criteria">
+
+	<sql id="ibatis_hsCriteriaOrderSql">
+		<if test="orderByStr!=null and orderByStr!=''">
+			<![CDATA[ORDER BY ${orderByStr}]]>
+		</if>
+	</sql>
+
+	<sql id="Ibatis_hsCriteriaGroupBySql">
+		<if test="groupBy!=null and groupBy!=''">
+			<![CDATA[${groupBy.op}]]>
+			<foreach collection="groupBy.groupByColumn" item="column" index="index"
+					 open=" " close=" " separator=",">
+				${column}
+			</foreach>
+			<if test="groupBy.having!=null">
+				<![CDATA[ HAVING ]]>
+				<foreach collection="groupBy.having" separator=" AND "  open=" " close=" " item="item" index="index">
+					<if test="item.opType=='eq'">
+						<![CDATA[${item.property} ${item.op} #{item.value}]]>
+					</if>
+					<if test="item.opType=='ieq'">
+						<![CDATA[lower(${item.property}) ${item.op} #{item.value}]]>
+					</if>
+					<if test="item.opType=='ne'">
+						<![CDATA[${item.property} ${item.op} #{item.value}]]>
+					</if>
+					<if test="item.opType=='like'">
+						<if test="item.matchMode=='EXACT'">
+							<![CDATA[${item.property} ${item.op} #{item.value}]]>
+						</if>
+						<if test="item.matchMode=='ESTART'">
+							<![CDATA[${item.property} ${item.op} CONCAT('%',#{item.value})]]>
+						</if>
+						<if test="item.matchMode=='END'">
+							<![CDATA[${item.property} ${item.op} CONCAT(#{item.value},'%')]]>
+						</if>
+						<if test="item.matchMode=='ANYWHERE'">
+							<![CDATA[${item.property} ${item.op} CONCAT('%',#{item.value},'%')]]>
+						</if>
+					</if>
+
+					<if test="item.opType=='ilike'">
+						<if test="item.matchMode=='EXACT'">
+							<![CDATA[lower(${item.property}) ${item.op} #{item.value}]]>
+						</if>
+						<if test="item.matchMode=='ESTART'">
+							<![CDATA[lower(${item.property}) ${item.op} CONCAT('%',#{item.value})]]>
+						</if>
+						<if test="item.matchMode=='END'">
+							<![CDATA[lower(${item.property}) ${item.op} CONCAT(#{item.value},'%')]]>
+						</if>
+						<if test="item.matchMode=='ANYWHERE'">
+							<![CDATA[lower(${item.property}) ${item.op} CONCAT('%',#{item.value},'%')]]>
+						</if>
+					</if>
+					<if test="item.opType=='gt'">
+						<![CDATA[${item.property} ${item.op} #{item.value}]]>
+					</if>
+					<if test="item.opType=='lt'">
+						<![CDATA[${item.property} ${item.op} #{item.value}]]>
+					</if>
+					<if test="item.opType=='le'">
+						<![CDATA[${item.property} ${item.op} #{item.value}]]>
+					</if>
+					<if test="item.opType=='ge'">
+						<![CDATA[${item.property} ${item.op} #{item.value}]]>
+					</if>
+
+					<if test="item.opType=='in'">
+						<![CDATA[${item.property} IN]]>
+						<if test="item.values!=null">
+							<foreach collection="item.values" open="(" close=")" separator="," item="inItem" index="index">
+								<![CDATA[#{inItem}]]>
+							</foreach>
+						</if>
+						<if test="item.values==null">
+							('')
+						</if>
+					</if>
+					<if test="item.opType=='notin'">
+						<![CDATA[${item.property} NOT IN]]>
+						<if test="item.values!=null">
+							<foreach collection="item.values" open="(" close=")" separator="," item="inItem" index="index">
+								<![CDATA[#{inItem}]]>
+							</foreach>
+						</if>
+						<if test="item.values==null">
+							('')
+						</if>
+					</if>
+
+					<if test="item.opType=='isNull'">
+						<![CDATA[${item.property} ${item.op}]]>
+					</if>
+
+					<if test="item.opType=='isNotNull'">
+						<![CDATA[${item.property} ${item.op}]]>
+					</if>
+
+					<if test="item.opType=='notBetween'">
+						<![CDATA[(${item.property} NOT BETWEEN #{item.lo} AND #{item.hi})]]>
+					</if>
+
+					<if test="item.opType=='between'">
+						<![CDATA[(${item.property} BETWEEN #{item.lo} AND #{item.hi})]]>
+					</if>
+
+					<if test="item.opType=='proExpr'">
+						<![CDATA[${item.propertyName} $item.op$ $item.otherPropertyName$]]>
+					</if>
+				</foreach>
+			</if>
+		</if>
+	</sql>
+
+
+	<sql id="Ibatis_hsCriteria_NotCriteria">
+		<if test="item.opType=='NOT'">
+			<if test="item.criterion.opType=='eq'">
+				<![CDATA[${item.criterion.property} ${item.criterion.op} #{item.criterion.value}]]>
+			</if>
+			<if test="item.criterion.opType=='ieq'">
+				<![CDATA[lower(${item.criterion.property}) ${item.criterion.op} #{item.criterion.value}]]>
+			</if>
+			<if test="item.criterion.opType=='ne'">
+				<![CDATA[${item.criterion.property} ${item.criterion.op} #{item.criterion.value}]]>
+			</if>
+			<if test="item.criterion.opType=='like'">
+				<if test="item.criterion.matchMode=='EXACT'">
+					<![CDATA[${item.criterion.property} ${item.criterion.op} #{item.criterion.value}]]>
+				</if>
+				<if test="item.criterion.matchMode=='ESTART'">
+					<![CDATA[${item.criterion.property} ${item.criterion.op} CONCAT('%',#{item.criterion.value})]]>
+				</if>
+				<if test="item.matchMode=='END'">
+					<![CDATA[${item.criterion.property} ${item.criterion.op} CONCAT(#{item.criterion.value},'%')]]>
+				</if>
+				<if test="item.criterion.matchMode=='ANYWHERE'">
+					<![CDATA[${item.criterion.property} ${item.criterion.op} CONCAT('%',#{item.criterion.value},'%')]]>
+				</if>
+			</if>
+
+			<if test="item.criterion.opType=='ilike'">
+				<if test="item.criterion.matchMode=='EXACT'">
+					<![CDATA[lower(${item.criterion.property}) ${item.criterion.op} #{item.criterion.value}]]>
+				</if>
+				<if test="item.criterion.matchMode=='ESTART'">
+					<![CDATA[lower(${item.criterion.property}) ${item.criterion.op} CONCAT('%',#{item.criterion.value})]]>
+				</if>
+				<if test="item.criterion.matchMode=='END'">
+					<![CDATA[lower(${item.criterion.property}) ${item.criterion.op} CONCAT(#{item.criterion.value},'%')]]>
+				</if>
+				<if test="item.criterion.matchMode=='ANYWHERE'">
+					<![CDATA[lower(${item.criterion.property}) ${item.criterion.op} CONCAT('%',#{item.criterion.value},'%')]]>
+				</if>
+			</if>
+			<if test="item.criterion.opType=='gt'">
+				<![CDATA[${item.criterion.property} ${item.criterion.op} #{item.criterion.value}]]>
+			</if>
+			<if test="item.criterion.opType=='lt'">
+				<![CDATA[${item.criterion.property} ${item.criterion.op} #{item.criterion.value}]]>
+			</if>
+			<if test="item.criterion.opType=='le'">
+				<![CDATA[${item.criterion.property} ${item.criterion.op} #{item.criterion.value}]]>
+			</if>
+			<if test="item.criterion.opType=='ge'">
+				<![CDATA[${item.criterion.property} ${item.criterion.op} #{item.criterion.value}]]>
+			</if>
+
+			<if test="item.criterion.opType=='in'">
+				<![CDATA[${item.criterion.property} IN]]>
+				<if test="item.criterion.values!=null">
+					<foreach collection="item.criterion.values" open="(" close=")" separator="," item="inItem" index="index">
+						<![CDATA[#{inItem}]]>
+					</foreach>
+				</if>
+				<if test="item.criterion.values==null">
+					('')
+				</if>
+			</if>
+			<if test="item.criterion.opType=='notin'">
+				<![CDATA[${item.criterion.property} NOT IN]]>
+				<if test="item.criterion.values!=null">
+					<foreach collection="item.criterion.values" open="(" close=")" separator="," item="inItem" index="index">
+						<![CDATA[#{inItem}]]>
+					</foreach>
+				</if>
+				<if test="item.criterion.values==null">
+					('')
+				</if>
+			</if>
+
+			<if test="item.criterion.opType=='isNull'">
+				<![CDATA[${item.criterion.property} ${item.criterion.op}]]>
+			</if>
+
+			<if test="item.criterion.opType=='isNotNull'">
+				<![CDATA[${item.criterion.property} ${item.criterion.op}]]>
+			</if>
+
+			<if test="item.criterion.opType=='notBetween'">
+				<![CDATA[(${item.criterion.property} NOT BETWEEN #{item.criterion.lo} AND #{item.criterion.hi})]]>
+			</if>
+
+			<if test="item.opType=='between'">
+				<![CDATA[(${item.criterion.property} BETWEEN #{item.criterion.lo} AND #{item.criterion.hi})]]>
+			</if>
+
+			<if test="item.criterion.opType=='proExpr'">
+				<![CDATA[${item.criterion.propertyName} $item.criterion.op$ $item.criterion.otherPropertyName$]]>
+			</if>
+		</if>
+	</sql>
+
+	<sql id="Ibatis_hsCriteria_OrCriteria">
+		<if test="item.opType=='OR_JUNC'">
+			<if test="item.criteria!=null">
+				<foreach collection="item.criteria" open="(" close=")" separator=" OR "  item="criItem" index="index">
+					<if test="criItem.opType=='eq'">
+						<![CDATA[${criItem.property} ${criItem.op} #{criItem.value}]]>
+					</if>
+					<if test="criItem.opType=='ieq'">
+						<![CDATA[lower(${criItem.property}) ${criItem.op} #{criItem.value}]]>
+					</if>
+					<if test="criItem.opType=='ne'">
+						<![CDATA[${criItem.property} ${criItem.op} #{criItem.value}]]>
+					</if>
+					<if test="criItem.opType=='like'">
+						<if test="criItem.matchMode=='EXACT'">
+							<![CDATA[${criItem.property} ${criItem.op} #{criItem.value}]]>
+						</if>
+						<if test="criItem.matchMode=='ESTART'">
+							<![CDATA[${criItem.property} ${criItem.op} CONCAT('%',#{criItem.value})]]>
+						</if>
+						<if test="criItem.matchMode=='END'">
+							<![CDATA[${criItem.property} ${criItem.op} CONCAT(#{criItem.value},'%')]]>
+						</if>
+						<if test="criItem.matchMode=='ANYWHERE'">
+							<![CDATA[${criItem.property} ${criItem.op} CONCAT('%',#{criItem.value},'%')]]>
+						</if>
+					</if>
+
+					<if test="criItem.opType=='ilike'">
+						<if test="criItem.matchMode=='EXACT'">
+							<![CDATA[lower(${criItem.property}) ${criItem.op} #{criItem.value}]]>
+						</if>
+						<if test="criItem.matchMode=='ESTART'">
+							<![CDATA[lower(${criItem.property}) ${criItem.op} CONCAT('%',#{criItem.value})]]>
+						</if>
+						<if test="criItem.matchMode=='END'">
+							<![CDATA[lower(${criItem.property}) ${criItem.op} CONCAT(#{criItem.value},'%')]]>
+						</if>
+						<if test="criItem.matchMode=='ANYWHERE'">
+							<![CDATA[lower(${criItem.property}) ${criItem.op} CONCAT('%',#{criItem.value},'%')]]>
+						</if>
+					</if>
+					<if test="criItem.opType=='gt'">
+						<![CDATA[${criItem.property} ${criItem.op} #{criItem.value}]]>
+					</if>
+					<if test="criItem.opType=='lt'">
+						<![CDATA[${criItem.property} ${criItem.op} #{criItem.value}]]>
+					</if>
+					<if test="criItem.opType=='le'">
+						<![CDATA[${criItem.property} ${criItem.op} #{criItem.value}]]>
+					</if>
+					<if test="criItem.opType=='ge'">
+						<![CDATA[${criItem.property} ${criItem.op} #{criItem.value}]]>
+					</if>
+
+					<if test="criItem.opType=='in'">
+						<![CDATA[${criItem.property} IN]]>
+						<if test="criItem.values!=null">
+							<foreach collection="criItem.values" open="(" close=")" separator="," item="inItem" index="index">
+								<![CDATA[#{inItem}]]>
+							</foreach>
+						</if>
+						<if test="criItem.values==null">
+							('')
+						</if>
+					</if>
+					<if test="criItem.opType=='notin'">
+						<![CDATA[${criItem.property} NOT IN]]>
+						<if test="criItem.values!=null">
+							<foreach collection="criItem.values" open="(" close=")" separator="," item="inItem" index="index">
+								<![CDATA[#{inItem}]]>
+							</foreach>
+						</if>
+						<if test="criItem.values==null">
+							('')
+						</if>
+					</if>
+
+					<if test="criItem.opType=='isNull'">
+						<![CDATA[${criItem.property} ${criItem.op}]]>
+					</if>
+
+					<if test="criItem.opType=='isNotNull'">
+						<![CDATA[${criItem.property} ${criItem.op}]]>
+					</if>
+
+					<if test="criItem.opType=='notBetween'">
+						<![CDATA[(${criItem.property} NOT BETWEEN #{criItem.lo} AND #{criItem.hi})]]>
+					</if>
+
+					<if test="criItem.opType=='between'">
+						<![CDATA[(${criItem.property} BETWEEN #{criItem.lo} AND #{criItem.hi})]]>
+					</if>
+
+					<if test="criItem.opType=='proExpr'">
+						<![CDATA[${criItem.propertyName} $criItem.op$ $criItem.otherPropertyName$]]>
+					</if>
+				</foreach>
+			</if>
+		</if>
+	</sql>
+
+	<sql id="Ibatis_hsCriteria_criteria_Sql">
+		<if test="criteria!=null">
+			<foreach collection="criteria" open=" " close=" " separator=" AND "  item="item" index="index">
+				<if test="item.opType=='eq'">
+					<![CDATA[${item.property} ${item.op} #{item.value}]]>
+				</if>
+				<if test="item.opType=='ieq'">
+					<![CDATA[lower(${item.property}) ${item.op} #{item.value}]]>
+				</if>
+				<if test="item.opType=='ne'">
+					<![CDATA[${item.property} ${item.op} #{item.value}]]>
+				</if>
+				<if test="item.opType=='like'">
+					<if test="item.matchMode=='EXACT'">
+						<![CDATA[${item.property} ${item.op} #{item.value}]]>
+					</if>
+					<if test="item.matchMode=='ESTART'">
+						<![CDATA[${item.property} ${item.op} CONCAT('%',#{item.value})]]>
+					</if>
+					<if test="item.matchMode=='END'">
+						<![CDATA[${item.property} ${item.op} CONCAT(#{item.value},'%')]]>
+					</if>
+					<if test="item.matchMode=='ANYWHERE'">
+						<![CDATA[${item.property} ${item.op} CONCAT('%',#{item.value},'%')]]>
+					</if>
+				</if>
+
+				<if test="item.opType=='ilike'">
+					<if test="item.matchMode=='EXACT'">
+						<![CDATA[lower(${item.property}) ${item.op} #{item.value}]]>
+					</if>
+					<if test="item.matchMode=='ESTART'">
+						<![CDATA[lower(${item.property}) ${item.op} CONCAT('%',#{item.value})]]>
+					</if>
+					<if test="item.matchMode=='END'">
+						<![CDATA[lower(${item.property}) ${item.op} CONCAT(#{item.value},'%')]]>
+					</if>
+					<if test="item.matchMode=='ANYWHERE'">
+						<![CDATA[lower(${item.property}) ${item.op} CONCAT('%',#{item.value},'%')]]>
+					</if>
+				</if>
+				<if test="item.opType=='gt'">
+					<![CDATA[${item.property} ${item.op} #{item.value}]]>
+				</if>
+				<if test="item.opType=='lt'">
+					<![CDATA[${item.property} ${item.op} #{item.value}]]>
+				</if>
+				<if test="item.opType=='le'">
+					<![CDATA[${item.property} ${item.op} #{item.value}]]>
+				</if>
+				<if test="item.opType=='ge'">
+					<![CDATA[${item.property} ${item.op} #{item.value}]]>
+				</if>
+
+				<if test="item.opType=='in'">
+					<![CDATA[${item.property} IN]]>
+					<if test="item.values!=null">
+						<foreach collection="item.values" open="(" close=")" separator="," item="inItem" index="index">
+							<![CDATA[#{inItem}]]>
+						</foreach>
+					</if>
+					<if test="item.values==null">
+						('')
+					</if>
+				</if>
+				<if test="item.opType=='notin'">
+					<![CDATA[${item.property} NOT IN]]>
+					<if test="item.values!=null">
+						<foreach collection="item.values" open="(" close=")" separator="," item="inItem" index="index">
+							<![CDATA[#{inItem}]]>
+						</foreach>
+					</if>
+					<if test="item.values==null">
+						('')
+					</if>
+				</if>
+
+				<if test="item.opType=='isNull'">
+					<![CDATA[${item.property} ${item.op}]]>
+				</if>
+
+				<if test="item.opType=='isNotNull'">
+					<![CDATA[${item.property} ${item.op}]]>
+				</if>
+
+				<if test="item.opType=='notBetween'">
+					<![CDATA[(${item.property} NOT BETWEEN #{item.lo} AND #{item.hi})]]>
+				</if>
+
+				<if test="item.opType=='between'">
+					<![CDATA[(${item.property} BETWEEN #{item.lo} AND #{item.hi})]]>
+				</if>
+
+				<if test="item.opType=='proExpr'">
+					<![CDATA[${item.propertyName} $item.op$ $item.otherPropertyName$]]>
+				</if>
+				<if test="item.opType=='S_FUNC'">
+					<if test="item.isLeft==true">
+						<![CDATA[${item.funcName}(${item.property},#{item.value})]]>
+					</if>
+					<if test="item.isLeft==false">
+						<![CDATA[${item.funcName}(#{item.value},${item.property})]]>
+					</if>
+				</if>
+				<include refid="criteria.Ibatis_hsCriteria_NotCriteria"/>
+				<include refid="criteria.Ibatis_hsCriteria_OrCriteria"/>
+			</foreach>
+		</if>
+	</sql>
+
+	<sql id="ibatis_hsCriteriaLimitSql">
+		<if test="pagingLimit!=null">
+			<![CDATA[${pagingLimit.op} #{pagingLimit.startPos} , #{pagingLimit.pageSize}]]>
+		</if>
+	</sql>
+
+	<sql id="ibatis_hsCriteriaWhereSql">
+		<if test="criteria==null">
+			<choose>
+				<when test="groupBy!=null"> <![CDATA[1=1]]> </when>
+				<otherwise>
+					<choose>
+						<when test="orderByStr!=null and orderByStr!=''">
+							<![CDATA[1=1]]>
+						</when>
+						<otherwise>
+							<if test="pagingLimit!=null">
+								<![CDATA[1=1]]>
+							</if>
+						</otherwise>
+					</choose>
+				</otherwise>
+			</choose>
+		</if>
+		<include refid="criteria.Ibatis_hsCriteria_criteria_Sql"/>
+		<!-- 拼接 group by -->
+		<include refid="criteria.Ibatis_hsCriteriaGroupBySql"/>
+		<!-- 拼接 order by -->
+		<include refid="criteria.ibatis_hsCriteriaOrderSql"/>
+		<!-- 拼接 limit -->
+		<include refid="criteria.ibatis_hsCriteriaLimitSql"/>
+	</sql>
+
+	<sql id="Ibatis_hsCriteriaScopeJoinSql">
+		<if test="fromJoins!=null">
+			<foreach collection="fromJoins" open=" " close=" " item="joinitem" separator=" "  index="index">
+				${joinitem.op} ${tableName} ON ${joinitem.onCriteria.propertyName}= ${joinitem.onCriteria.otherPropertyName}
+				<if test="joinitem.criteria!=null">
+					<foreach collection="joinitem.criteria" open=" " close=" " separator=" AND " item="item" index="index">
+						<if test="item.opType=='eq'">
+							<![CDATA[${item.property} ${item.op} #{item.value}]]>
+						</if>
+						<if test="item.opType=='ieq'">
+							<![CDATA[lower(${item.property}) ${item.op} #{item.value}]]>
+						</if>
+						<if test="item.opType=='ne'">
+							<![CDATA[${item.property} ${item.op} #{item.value}]]>
+						</if>
+						<if test="item.opType=='like'">
+							<if test="item.matchMode=='EXACT'">
+								<![CDATA[${item.property} ${item.op} #{item.value}]]>
+							</if>
+							<if test="item.matchMode=='ESTART'">
+								<![CDATA[${item.property} ${item.op} CONCAT('%',#{item.value})]]>
+							</if>
+							<if test="item.matchMode=='END'">
+								<![CDATA[${item.property} ${item.op} CONCAT(#{item.value},'%')]]>
+							</if>
+							<if test="item.matchMode=='ANYWHERE'">
+								<![CDATA[${item.property} ${item.op} CONCAT('%',#{item.value},'%')]]>
+							</if>
+						</if>
+
+						<if test="item.opType=='ilike'">
+							<if test="item.matchMode=='EXACT'">
+								<![CDATA[lower(${item.property}) ${item.op} #{item.value}]]>
+							</if>
+							<if test="item.matchMode=='ESTART'">
+								<![CDATA[lower(${item.property}) ${item.op} CONCAT('%',#{item.value})]]>
+							</if>
+							<if test="item.matchMode=='END'">
+								<![CDATA[lower(${item.property}) ${item.op} CONCAT(#{item.value},'%')]]>
+							</if>
+							<if test="item.matchMode=='ANYWHERE'">
+								<![CDATA[lower(${item.property}) ${item.op} CONCAT('%',#{item.value},'%')]]>
+							</if>
+						</if>
+						<if test="item.opType=='gt'">
+							<![CDATA[${item.property} ${item.op} #{item.value}]]>
+						</if>
+						<if test="item.opType=='lt'">
+							<![CDATA[${item.property} ${item.op} #{item.value}]]>
+						</if>
+						<if test="item.opType=='le'">
+							<![CDATA[${item.property} ${item.op} #{item.value}]]>
+						</if>
+						<if test="item.opType=='ge'">
+							<![CDATA[${item.property} ${item.op} #{item.value}]]>
+						</if>
+
+						<if test="item.opType=='in'">
+							<![CDATA[${item.property} IN]]>
+							<if test="item.values!=null">
+								<foreach collection="item.values" open="(" close=")" separator="," item="inItem" index="index">
+									<![CDATA[#{inItem}]]>
+								</foreach>
+							</if>
+							<if test="item.values==null">
+								('')
+							</if>
+						</if>
+						<if test="item.opType=='notin'">
+							<![CDATA[${item.property} NOT IN]]>
+							<if test="item.values!=null">
+								<foreach collection="item.values" open="(" close=")" separator="," item="inItem" index="index">
+									<![CDATA[#{inItem}]]>
+								</foreach>
+							</if>
+							<if test="item.values==null">
+								('')
+							</if>
+						</if>
+
+						<if test="item.opType=='isNull'">
+							<![CDATA[${item.property} ${item.op}]]>
+						</if>
+
+						<if test="item.opType=='isNotNull'">
+							<![CDATA[${item.property} ${item.op}]]>
+						</if>
+
+						<if test="item.opType=='notBetween'">
+							<![CDATA[(${item.property} NOT BETWEEN #{item.lo} AND #{item.hi})]]>
+						</if>
+
+						<if test="item.opType=='between'">
+							<![CDATA[(${item.property} BETWEEN #{item.lo} AND #{item.hi})]]>
+						</if>
+
+						<if test="item.opType=='proExpr'">
+							<![CDATA[${item.propertyName} $item.op$ $item.otherPropertyName$]]>
+						</if>
+					</foreach>
+				</if>
+			</foreach>
+		</if>
+	</sql>
+
+	<sql id="Ibatis_hsCriteriaSelectColumnNameSql">
+		<if test="columnNames!=null">
+			<foreach collection="columnNames" open=" " close=" " item="item" separator=","  index="index">
+				<if test="item.include == null">
+					<![CDATA[${item.columnName}]]>
+				</if>
+			</foreach>
+		</if>
+	</sql>
+
+	<select id="Ibatis_QueryByCriteriaSelect" resultType="java.util.HashMap" parameterType="IbatisHsCriteria">
+		<if test="columnNames!=null">
+			<![CDATA[SELECT]]>
+			<foreach collection="columnNames" open=" " close=" " item="item" separator=","  index="index">
+				<if test="item.include == null">
+					<![CDATA[${item.columnName}]]>
+				</if>
+			</foreach>
+		</if>
+		<if test="fromClause!=null">
+			<![CDATA[from]]>
+			<foreach collection="fromClause" open=" " close=" " item="item" separator=","  index="index">
+				<if test="item.opType=='tName'">
+					<![CDATA[${item.fromCriteria} ${item.aliasTableName}]]>
+				</if>
+			</foreach>
+		</if>
+		<include refid="criteria.Ibatis_hsCriteriaScopeJoinSql"/>
+		<where>
+			<include refid="criteria.ibatis_hsCriteriaWhereSql"/>
+		</where>
+	</select>
+
+	<!-- 动态更新数据 -->
+	<update id="Ibatis_UpdateByCriteriaUpdate" parameterType="IbatisHsCriteriaUpdate">
+		<![CDATA[UPDATE ${tableName} ]]>
+		<set>
+			<if test="columnNames!=null">
+				<foreach collection="columnNames" open=" " close=" " item="item" separator=","  index="index">
+					<if test="item.columnConst==1">
+						<![CDATA[${item.columnName} = ${item.columnValue}]]>
+					</if>
+					<if test="item.columnConst==0">
+						<![CDATA[${item.columnName} = #{item.columnValue}]]>
+					</if>
+				</foreach>
+			</if>
+		</set>
+		<where>
+			<include refid="criteria.Ibatis_hsCriteria_criteria_Sql"/>
+		</where>
+	</update>
+
+	<!-- 动态insert data -->
+	<insert id="Ibatis_InsertByCriteriaInsert" parameterType="IbatisHsCriteriaInsert">
+		<![CDATA[INSERT INTO ${tableName} ]]>
+		<foreach collection="columnNames" open="(" close=")" item="item" separator=","  index="index">
+			<![CDATA[${item.columnName}]]>
+		</foreach>
+		<![CDATA[ VALUES ]]>
+		<foreach collection="columnNames" open="(" close=")" item="item" separator=","  index="index">
+			<if test="item.columnConst==1">
+				<![CDATA[${item.columnName} = ${item.columnValue}]]>
+			</if>
+			<if test="item.columnConst==0">
+				<![CDATA[${item.columnName} = #{item.columnValue}]]>
+			</if>
+		</foreach>
+	</insert>
+
+</mapper>

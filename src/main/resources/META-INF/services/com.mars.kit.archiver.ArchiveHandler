@@ -1,0 +1,4 @@
+com.mars.kit.archiver.spi.TableCheckHandler
+com.mars.kit.archiver.spi.CountHandler
+com.mars.kit.archiver.spi.MaxIdHandler
+com.mars.kit.archiver.spi.ExecuteHandler

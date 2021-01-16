@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache name="ad-mailSender">
+	<cache name="mailSender_cache" 
+			maxBytesLocalHeap="10M" 
+			eternal="false"
+			timeToIdleSeconds="100" 
+			timeToLiveSeconds="100" 
+			memoryStoreEvictionPolicy="LRU"
+			statistics="true">
+	</cache>
+	<sizeOfPolicy maxDepth="1000" maxDepthExceededBehavior="abort" />
+</ehcache>

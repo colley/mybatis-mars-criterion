@@ -1,0 +1,30 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+您好：
+<div style="margin-left:2em">
+			<p>
+			<#if succ>
+			 	【归档数据成功汇总】已执行完成！   
+			<#else>
+				归档数据失败！
+			</#if>
+			</p>
+			<p>执行服务IP：${serverIp?if_exists}</p>
+			<p>开始时间：${(startTime?string("yyyy-MM-dd HH:mm:ss"))!'-'}</p>
+			<p>结束时间：${(endTime?string("yyyy-MM-dd HH:mm:ss"))!'-'}</p>
+			<p>当前归档表：${srcTableName!'-'}</p>
+			<p>目标表：${desTableName!'-'}</p>
+			<p>未归档数量：${(remainCount?c)!'-'}</p>
+			<p>最大max(id)：${(maxId?c)!'-'}</p>
+			<p>Limit数：${(limit?c)!'-'}</p>
+			<p>归档总数：${(progressSize?c)!'-'}</p>
+			<p>归档重复总数：${(repeatNum?c)!'-'}</p>
+			<p>删除总数：${(delTotalNum?c)!'-'}</p>
+			<p>重试总次数：${retries?if_exists}</p>
+			<p>是否删除归档表数据 ：${purge?if_exists}</p>
+			<p>总共耗时：${costTime!'0'}</p>
+			 <#if traceInfo?exists>
+				<p>错误信息：${traceInfo!''}</p>
+			</#if>
+</div>
+─────────────────────────── <br>
+<p>联系邮箱：${adminName?if_exists}</p>
